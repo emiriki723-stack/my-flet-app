@@ -3,7 +3,7 @@ import json, ssl, time, threading, sqlite3
 from collections import defaultdict, deque
 from datetime import datetime
 
-# Veritabanı kurulumu
+# Veritabanı
 conn = sqlite3.connect("signals.db", check_same_thread=False)
 cursor = conn.cursor()
 cursor.execute('''
@@ -27,7 +27,7 @@ def main(page: ft.Page):
 
     config = {"api_key": "", "secret_key": "", "min_price": 0.50, "max_price": 25.00, "min_volume": 100000.0, "is_running": False}
 
-    status_icon = ft.Icon(ft.icons.DISCONNECT_ING_OUTLINED, color=ft.colors.RED)
+    status_icon = ft.Icon(ft.icons.WIFI_OFF, color=ft.colors.RED)
     status_text = ft.Text("Bağlantı Kapalı", size=12, color=ft.colors.RED)
     signals_list = ft.ListView(expand=True, spacing=10)
 
@@ -137,7 +137,7 @@ def main(page: ft.Page):
             config["is_running"] = False
             btn_start.text = "Taramayı Başlat"
             btn_start.bgcolor = ft.colors.GREEN_600
-            status_icon.name = ft.icons.DISCONNECT_ING_OUTLINED
+            status_icon.name = ft.icons.WIFI_OFF
             status_icon.color = ft.colors.RED
             status_text.value = "Bağlantı Kapalı"
             status_text.color = ft.colors.RED
@@ -173,4 +173,3 @@ def main(page: ft.Page):
     page.add(tabs)
 
 ft.app(target=main)
-  
