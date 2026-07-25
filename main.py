@@ -11,7 +11,7 @@ def is_market_open():
 
 def main(page: ft.Page):
     page.title = "EMGE Trading & Halt Radar PRO"
-    page.theme_mode = "dark"
+    page.theme_mode = ft.ThemeMode.DARK
     page.bgcolor = "#0f111a"
     page.padding = 12
 
@@ -38,13 +38,14 @@ def main(page: ft.Page):
         padding=8
     )
 
-    status_icon = ft.Icon(ft.Icons.RADIO_BUTTON_OFF, color="#ff4d4d", size=14)
+    # İkonlar string name parametresine çevrildi (Çökme önlendi)
+    status_icon = ft.Icon(name="radio_button_off", color="#ff4d4d", size=14)
     status_text = ft.Text("SİSTEM ÇEVRİMDIŞI", size=11, color="#ff4d4d", weight=ft.FontWeight.BOLD)
     signals_list = ft.ListView(expand=True, spacing=8)
 
     market_closed_banner = ft.Container(
         content=ft.Row([
-            ft.Icon(ft.Icons.WARNING_ROUNDED, color="#ffaa00", size=18),
+            ft.Icon(name="warning_rounded", color="#ffaa00", size=18),
             ft.Column([
                 ft.Text("PİYASALAR KAPALI (HAFTA SONU)", size=11, weight=ft.FontWeight.BOLD, color="#ffaa00"),
                 ft.Text("Canlı veri akışı Pazartesi açılışında aktifleşecektir.", size=9, color="#8b9bb4")
@@ -139,7 +140,7 @@ def main(page: ft.Page):
                         continue
 
                     if item.get("T") == "success" and item.get("msg") == "authenticated":
-                        status_icon.name = ft.Icons.RADIO_BUTTON_CHECKED
+                        status_icon.name = "radio_button_checked"
                         status_icon.color = "#00ffcc"
                         status_text.value = "CANLI AKIŞ AKTİF" if is_market_open() else "BAĞLANTI HAZIR (KAPALI)"
                         status_text.color = "#00ffcc"
@@ -202,8 +203,7 @@ def main(page: ft.Page):
             btn_start.text = "Taramayı Durdur"
             btn_start.bgcolor = "#ff4d4d"
             
-            # Anında durum güncellemesi ver
-            status_icon.name = ft.Icons.SYNC
+            status_icon.name = "sync"
             status_icon.color = "#ffaa00"
             status_text.value = "SUNUCUYA BAĞLANILIYOR..."
             status_text.color = "#ffaa00"
@@ -214,7 +214,7 @@ def main(page: ft.Page):
             config["is_running"] = False
             btn_start.text = "Taramayı Başlat"
             btn_start.bgcolor = "#00ffcc"
-            status_icon.name = ft.Icons.RADIO_BUTTON_OFF
+            status_icon.name = "radio_button_off"
             status_icon.color = "#ff4d4d"
             status_text.value = "SİSTEM ÇEVRİMDIŞI"
             status_text.color = "#ff4d4d"
@@ -276,4 +276,3 @@ def main(page: ft.Page):
     )
 
 ft.app(target=main)
-    
