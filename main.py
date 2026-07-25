@@ -158,31 +158,47 @@ def main(page: ft.Page):
 
     btn_start = ft.ElevatedButton("Taramayı Başlat", on_click=toggle_scanner, bgcolor="green", color="white")
 
-    radar_tab = ft.Column([
+    radar_container = ft.Column([
         ft.Row([status_icon, status_text], alignment=ft.MainAxisAlignment.START),
         ft.Divider(color="grey"),
         signals_list
-    ], expand=True)
+    ], expand=True, visible=True)
 
-    settings_tab = ft.Column([
+    settings_container = ft.Column([
         ft.Text("🔑 API Ayarları", size=16, weight=ft.FontWeight.BOLD),
         api_key_input,
         secret_key_input,
         ft.Divider(color="grey"),
         btn_start
-    ], expand=True)
+    ], expand=True, visible=False)
 
-    tabs = ft.Tabs(
-        selected_index=0,
-        animation_duration=300,
-        tabs=[
-            ft.Tab(content=radar_tab, text="📡 Canlı Radar"),
-            ft.Tab(content=settings_tab, text="⚙️ Ayarlar"),
-        ],
-        expand=True
+    def show_radar(e):
+        radar_container.visible = True
+        settings_container.visible = False
+        btn_radar_nav.bgcolor = "blue"
+        btn_settings_nav.bgcolor = "grey"
+        page.update()
+
+    def show_settings(e):
+        radar_container.visible = False
+        settings_container.visible = True
+        btn_radar_nav.bgcolor = "grey"
+        btn_settings_nav.bgcolor = "blue"
+        page.update()
+
+    btn_radar_nav = ft.ElevatedButton("📡 Radar", on_click=show_radar, bgcolor="blue", color="white", expand=True)
+    btn_settings_nav = ft.ElevatedButton("⚙️ Ayarlar", on_click=show_settings, bgcolor="grey", color="white", expand=True)
+
+    nav_row = ft.Row([btn_radar_nav, btn_settings_nav], spacing=10)
+
+    page.add(
+        ft.Column([
+            ft.Container(content=radar_container, expand=True),
+            ft.Container(content=settings_container, expand=True),
+            ft.Divider(color="grey"),
+            nav_row
+        ], expand=True)
     )
 
-    page.add(tabs)
-
 ft.app(target=main)
-                        
+            
