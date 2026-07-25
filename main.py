@@ -27,7 +27,7 @@ def main(page: ft.Page):
 
     config = {"api_key": "", "secret_key": "", "min_price": 0.50, "max_price": 25.00, "min_volume": 100000.0, "is_running": False}
 
-    status_icon = ft.Icon(ft.icons.WIFI_OFF, color=ft.colors.RED)
+    status_icon = ft.Icon(name="wifi_off", color=ft.colors.RED)
     status_text = ft.Text("Bağlantı Kapalı", size=12, color=ft.colors.RED)
     signals_list = ft.ListView(expand=True, spacing=10)
 
@@ -75,7 +75,7 @@ def main(page: ft.Page):
         def on_message(ws, msg):
             for item in json.loads(msg):
                 if item.get("T") == "success" and item.get("msg") == "authenticated":
-                    status_icon.name = ft.icons.CHECK_CIRCLE
+                    status_icon.name = "check_circle"
                     status_icon.color = ft.colors.GREEN
                     status_text.value = "Canlı Akış Aktif"
                     status_text.color = ft.colors.GREEN
@@ -137,7 +137,7 @@ def main(page: ft.Page):
             config["is_running"] = False
             btn_start.text = "Taramayı Başlat"
             btn_start.bgcolor = ft.colors.GREEN_600
-            status_icon.name = ft.icons.WIFI_OFF
+            status_icon.name = "wifi_off"
             status_icon.color = ft.colors.RED
             status_text.value = "Bağlantı Kapalı"
             status_text.color = ft.colors.RED
