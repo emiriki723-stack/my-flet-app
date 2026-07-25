@@ -27,7 +27,7 @@ def main(page: ft.Page):
 
     config = {"api_key": "", "secret_key": "", "min_price": 0.50, "max_price": 25.00, "min_volume": 100000.0, "is_running": False}
 
-    status_icon = ft.Icon(name="wifi_off", color="red")
+    status_icon = ft.Icon(ft.Icons.WIFI_OFF, color="red")
     status_text = ft.Text("Bağlantı Kapalı", size=12, color="red")
     signals_list = ft.ListView(expand=True, spacing=10)
 
@@ -83,7 +83,7 @@ def main(page: ft.Page):
                         continue
 
                     if item.get("T") == "success" and item.get("msg") == "authenticated":
-                        status_icon.name = "check_circle"
+                        status_icon.name = ft.Icons.CHECK_CIRCLE
                         status_icon.color = "green"
                         status_text.value = "Canlı Akış Aktif"
                         status_text.color = "green"
@@ -115,7 +115,7 @@ def main(page: ft.Page):
                                     add_signal_card(symbol, "🔥 SCALP SİNYAL", entry, round(entry*0.975,2), round(entry*1.035,2), round(entry*1.07,2), dollar_vol, is_halt=False)
 
                         history[symbol].append({"v": vol})
-            except Exception as ex:
+            except Exception:
                 pass
 
         def on_open(ws):
@@ -147,7 +147,7 @@ def main(page: ft.Page):
             config["is_running"] = False
             btn_start.text = "Taramayı Başlat"
             btn_start.bgcolor = "green"
-            status_icon.name = "wifi_off"
+            status_icon.name = ft.Icons.WIFI_OFF
             status_icon.color = "red"
             status_text.value = "Bağlantı Kapalı"
             status_text.color = "red"
@@ -183,4 +183,4 @@ def main(page: ft.Page):
     page.add(tabs)
 
 ft.app(target=main)
-        
+                   
