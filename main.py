@@ -3,19 +3,73 @@ import json, ssl, time, threading, sqlite3
 from collections import defaultdict, deque
 from datetime import datetime
 
+def is_market_open():
+    now = datetime.now()
+    if now.weekday() >= 5:
+        return False
+    return True
+
 def main(page: ft.Page):
-    page.title = "Trading & Halt Radar PRO"
+    page.title = "EMGE Trading & Halt Radar PRO"
     page.theme_mode = "dark"
-    page.padding = 10
+    page.bgcolor = "#0f111a"  # Derin terminal koyu arka planı
+    page.padding = ft.padding.only(top=40, left=12, right=12, bottom=12)
 
     config = {"api_key": "", "secret_key": "", "min_price": 0.50, "max_price": 25.00, "min_volume": 100000.0, "is_running": False}
 
-    status_icon = ft.Icon(ft.Icons.WIFI_OFF, color="red")
-    status_text = ft.Text("Bağlantı Kapalı", size=12, color="red")
-    signals_list = ft.ListView(expand=True, spacing=10)
+    # Profesyonel Terminal Başlığı & İmza
+    header = ft.Container(
+        content=ft.Column([
+            ft.Row([
+                ft.Row([
+                    ft.Container(bgcolor="#00ffcc", width=8, height=24, border_radius=2),
+                    ft.Text("EMGE", size=20, weight=ft.FontWeight.BOLD, color="#ffffff"),
+                    ft.Text("TERMINAL", size=14, weight=ft.FontWeight.W_500, color="#00ffcc"),
+                ], spacing=6),
+                ft.Container(
+                    content=ft.Text("PRO v2.4", size=10, weight=ft.FontWeight.BOLD, color="#00ffcc"),
+                    bgcolor="#1a2634", padding=ft.padding.symmetric(horizontal=8, vertical=3), border_radius=4
+                )
+            ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
+            ft.Row([
+                ft.Text("Algorithmic Scalp & Halt Radar", size=10, color="#8b9bb4"),
+                ft.Text("Created by emge ✦", size=10, color="#00ffcc", italic=True),
+            ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
+        ], spacing=4),
+        padding=ft.padding.only(bottom=8)
+    )
 
-    api_key_input = ft.TextField(label="Alpaca API Key", password=True, can_reveal_password=True)
-    secret_key_input = ft.TextField(label="Alpaca Secret Key", password=True, can_reveal_password=True)
+    status_icon = ft.Icon(ft.Icons.RADIO_BUTTON_OFF, color="#ff4d4d", size=14)
+    status_text = ft.Text("SİSTEM ÇEVRİMDIŞI", size=11, color="#ff4d4d", weight=ft.FontWeight.BOLD)
+    signals_list = ft.ListView(expand=True, spacing=8)
+
+    # Piyasa Kapalı Uyarısı (Terminal Tasarımı)
+    market_closed_banner = ft.Container(
+        content=ft.Row([
+            ft.Icon(ft.Icons.WARNING_ROUNDED, color="#ffaa00", size=18),
+            ft.Column([
+                ft.Text("PİYASALAR KAPALI (HAFTA SONU)", size=11, weight=ft.FontWeight.BOLD, color="#ffaa00"),
+                ft.Text("Canlı veri akışı Pazartesi açılışında aktifleşecektir.", size=9, color="#8b9bb4")
+            ], spacing=1)
+        ], spacing=10),
+        bgcolor="#1c1811",
+        padding=10,
+        border_radius=6,
+        border=ft.border.all(1, "#ffaa00"),
+        visible=not is_market_open()
+    )
+
+    # Terminal Stilinde Inputlar
+    api_key_input = ft.TextField(
+        label="Alpaca API Key", password=True, can_reveal_password=True,
+        bgcolor="#161922", border_color="#2a3447", focused_border_color="#00ffcc",
+        label_style=ft.TextStyle(color="#8b9bb4", size=12), text_style=ft.TextStyle(color="#ffffff", size=13)
+    )
+    secret_key_input = ft.TextField(
+        label="Alpaca Secret Key", password=True, can_reveal_password=True,
+        bgcolor="#161922", border_color="#2a3447", focused_border_color="#00ffcc",
+        label_style=ft.TextStyle(color="#8b9bb4", size=12), text_style=ft.TextStyle(color="#ffffff", size=13)
+    )
 
     def init_db_and_add(symbol, sig_type, price, stop, tp1, tp2, dollar_vol, is_halt=False):
         try:
@@ -35,32 +89,37 @@ def main(page: ft.Page):
         except:
             pass
 
-        border_color = "yellowAccent" if is_halt else "greenAccent"
-        tag_color = "orange" if is_halt else "green"
+        border_color = "#ffaa00" if is_halt else "#00ffcc"
+        tag_bg = "#332200" if is_halt else "#003322"
+        tag_fg = "#ffaa00" if is_halt else "#00ffcc"
 
-        card = ft.Card(
-            content=ft.Container(
-                padding=12,
-                border=ft.border.all(1, border_color),
-                border_radius=8,
-                content=ft.Column([
-                    ft.Row([
-                        ft.Text(f"${symbol}", size=16, weight=ft.FontWeight.BOLD, color="cyan"),
-                        ft.Container(content=ft.Text(sig_type, size=10, weight=ft.FontWeight.BOLD, color="black"), bgcolor=tag_color, padding=4, border_radius=4),
-                        ft.Text(datetime.now().strftime("%H:%M:%S"), size=10, color="grey")
-                    ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
-                    ft.Divider(height=5, color="transparent"),
-                    ft.Row([
-                        ft.Text(f"Giriş: ${price}", color="white"),
-                        ft.Text(f"Stop: ${stop}", color="redAccent"),
-                        ft.Text(f"TP1: ${tp1}", color="greenAccent"),
-                        ft.Text(f"TP2: ${tp2}", color="blueAccent"),
-                    ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
-                    ft.Divider(height=5, color="transparent"),
-                    ft.Text(f"💰 Dakikalık Hacim: ${int(dollar_vol):,}", size=10, color="grey")
-                ])
-            ),
-            color="#181825"
+        card = ft.Container(
+            padding=10,
+            bgcolor="#161922",
+            border=ft.border.all(1, border_color),
+            border_radius=6,
+            content=ft.Column([
+                ft.Row([
+                    ft.Text(f"${symbol}", size=15, weight=ft.FontWeight.BOLD, color="#ffffff"),
+                    ft.Container(
+                        content=ft.Text(sig_type, size=9, weight=ft.FontWeight.BOLD, color=tag_fg),
+                        bgcolor=tag_bg, padding=ft.padding.symmetric(horizontal=6, vertical=2), border_radius=3
+                    ),
+                    ft.Text(datetime.now().strftime("%H:%M:%S"), size=10, color="#8b9bb4")
+                ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
+                ft.Divider(height=4, color="transparent"),
+                ft.Row([
+                    ft.Text(f"Giriş: ${price}", size=11, color="#ffffff"),
+                    ft.Text(f"Stop: ${stop}", size=11, color="#ff4d4d"),
+                    ft.Text(f"TP1: ${tp1}", size=11, color="#00ffcc"),
+                    ft.Text(f"TP2: ${tp2}", size=11, color="#3399ff"),
+                ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
+                ft.Divider(height=4, color="transparent"),
+                ft.Row([
+                    ft.Text(f"Hacim: ${int(dollar_vol):,}", size=9, color="#8b9bb4"),
+                    ft.Text("EMGE ALGO", size=9, color="#4a5568", italic=True)
+                ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN)
+            ], spacing=2)
         )
         signals_list.controls.insert(0, card)
         page.update()
@@ -82,10 +141,10 @@ def main(page: ft.Page):
                         continue
 
                     if item.get("T") == "success" and item.get("msg") == "authenticated":
-                        status_icon.name = ft.Icons.CHECK_CIRCLE
-                        status_icon.color = "green"
-                        status_text.value = "Canlı Akış Aktif"
-                        status_text.color = "green"
+                        status_icon.name = ft.Icons.RADIO_BUTTON_CHECKED
+                        status_icon.color = "#00ffcc"
+                        status_text.value = "CANLI AKIŞ AKTİF" if is_market_open() else "BAĞLANTI HAZIR (KAPALI)"
+                        status_text.color = "#00ffcc"
                         page.update()
                         ws.send(json.dumps({"action": "subscribe", "bars": ["*"]}))
                     elif item.get("T") == "b":
@@ -132,7 +191,7 @@ def main(page: ft.Page):
 
     def toggle_scanner(e):
         if not api_key_input.value or not secret_key_input.value:
-            page.snack_bar = ft.SnackBar(ft.Text("Lütfen API Key ve Secret Key girin!"))
+            page.snack_bar = ft.SnackBar(ft.Text("API Key ve Secret Key zorunludur!"))
             page.snack_bar.open = True
             page.update()
             return
@@ -143,62 +202,83 @@ def main(page: ft.Page):
         if not config["is_running"]:
             config["is_running"] = True
             btn_start.text = "Taramayı Durdur"
-            btn_start.bgcolor = "red"
+            btn_start.bgcolor = "#ff4d4d"
             threading.Thread(target=start_scanner, daemon=True).start()
         else:
             config["is_running"] = False
             btn_start.text = "Taramayı Başlat"
-            btn_start.bgcolor = "green"
-            status_icon.name = ft.Icons.WIFI_OFF
-            status_icon.color = "red"
-            status_text.value = "Bağlantı Kapalı"
-            status_text.color = "red"
+            btn_start.bgcolor = "#00ffcc"
+            status_icon.name = ft.Icons.RADIO_BUTTON_OFF
+            status_icon.color = "#ff4d4d"
+            status_text.value = "SİSTEM ÇEVRİMDIŞI"
+            status_text.color = "#ff4d4d"
 
         page.update()
 
-    btn_start = ft.ElevatedButton("Taramayı Başlat", on_click=toggle_scanner, bgcolor="green", color="white")
+    btn_start = ft.ElevatedButton(
+        "Taramayı Başlat", on_click=toggle_scanner, 
+        bgcolor="#00ffcc", color="#0f111a", 
+        style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=6))
+    )
 
     radar_container = ft.Column([
-        ft.Row([status_icon, status_text], alignment=ft.MainAxisAlignment.START),
-        ft.Divider(color="grey"),
+        ft.Row([
+            ft.Row([status_icon, status_text], spacing=6),
+            ft.Text("DATA: ALPACA IEX", size=9, color="#8b9bb4")
+        ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
+        market_closed_banner,
+        ft.Divider(color="#2a3447", height=8),
         signals_list
-    ], expand=True, visible=True)
+    ], expand=True)
 
     settings_container = ft.Column([
-        ft.Text("🔑 API Ayarları", size=16, weight=ft.FontWeight.BOLD),
+        ft.Text("🔑 API BAĞLANTI AYARLARI", size=12, weight=ft.FontWeight.BOLD, color="#00ffcc"),
         api_key_input,
         secret_key_input,
-        ft.Divider(color="grey"),
+        ft.Divider(color="#2a3447"),
         btn_start
-    ], expand=True, visible=False)
+    ], expand=True, spacing=12)
+
+    content_area = ft.Container(content=radar_container, expand=True)
 
     def show_radar(e):
-        radar_container.visible = True
-        settings_container.visible = False
-        btn_radar_nav.bgcolor = "blue"
-        btn_settings_nav.bgcolor = "grey"
+        content_area.content = radar_container
+        btn_radar_nav.bgcolor = "#1a2634"
+        btn_radar_nav.color = "#00ffcc"
+        btn_settings_nav.bgcolor = "#161922"
+        btn_settings_nav.color = "#8b9bb4"
         page.update()
 
     def show_settings(e):
-        radar_container.visible = False
-        settings_container.visible = True
-        btn_radar_nav.bgcolor = "grey"
-        btn_settings_nav.bgcolor = "blue"
+        content_area.content = settings_container
+        btn_radar_nav.bgcolor = "#161922"
+        btn_radar_nav.color = "#8b9bb4"
+        btn_settings_nav.bgcolor = "#1a2634"
+        btn_settings_nav.color = "#00ffcc"
         page.update()
 
-    btn_radar_nav = ft.ElevatedButton("📡 Radar", on_click=show_radar, bgcolor="blue", color="white", expand=True)
-    btn_settings_nav = ft.ElevatedButton("⚙️ Ayarlar", on_click=show_settings, bgcolor="grey", color="white", expand=True)
+    # Terminal Tarzı Navigasyon Butonları
+    btn_radar_nav = ft.ElevatedButton(
+        "📡 RADAR", on_click=show_radar, 
+        bgcolor="#1a2634", color="#00ffcc", expand=True,
+        style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=6))
+    )
+    btn_settings_nav = ft.ElevatedButton(
+        "⚙️ AYARLAR", on_click=show_settings, 
+        bgcolor="#161922", color="#8b9bb4", expand=True,
+        style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=6))
+    )
 
-    nav_row = ft.Row([btn_radar_nav, btn_settings_nav], spacing=10)
+    nav_row = ft.Row([btn_radar_nav, btn_settings_nav], spacing=8)
 
     page.add(
         ft.Column([
-            ft.Container(content=radar_container, expand=True),
-            ft.Container(content=settings_container, expand=True),
-            ft.Divider(color="grey"),
+            header,
+            content_area,
+            ft.Divider(color="#2a3447", height=6),
             nav_row
         ], expand=True)
     )
 
 ft.app(target=main)
-            
+    
