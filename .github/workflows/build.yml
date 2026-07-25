@@ -22,7 +22,7 @@ jobs:
           pip install flet websocket-client
 
       - name: Build Android APK
-        run: flet build apk --app-title "EMGE Trade" --icon icon.png main.py
+        run: flet build apk --product "EMGE Trade" --icon "icon.png"
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
