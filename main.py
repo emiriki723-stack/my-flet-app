@@ -38,14 +38,14 @@ def main(page: ft.Page):
         padding=8
     )
 
-    # İkonlar string name parametresine çevrildi (Çökme önlendi)
-    status_icon = ft.Icon(name="radio_button_off", color="#ff4d4d", size=14)
+    # İkon parametresi 'name=' kaldırılıp doğrudan dize olarak verildi
+    status_icon = ft.Icon("radio_button_off", color="#ff4d4d", size=14)
     status_text = ft.Text("SİSTEM ÇEVRİMDIŞI", size=11, color="#ff4d4d", weight=ft.FontWeight.BOLD)
     signals_list = ft.ListView(expand=True, spacing=8)
 
     market_closed_banner = ft.Container(
         content=ft.Row([
-            ft.Icon(name="warning_rounded", color="#ffaa00", size=18),
+            ft.Icon("warning_rounded", color="#ffaa00", size=18),
             ft.Column([
                 ft.Text("PİYASALAR KAPALI (HAFTA SONU)", size=11, weight=ft.FontWeight.BOLD, color="#ffaa00"),
                 ft.Text("Canlı veri akışı Pazartesi açılışında aktifleşecektir.", size=9, color="#8b9bb4")
