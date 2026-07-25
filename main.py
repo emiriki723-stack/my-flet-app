@@ -12,8 +12,9 @@ def is_market_open():
 def main(page: ft.Page):
     page.title = "EMGE Trading & Halt Radar PRO"
     page.theme_mode = "dark"
-    page.bgcolor = "#0f111a"  # Derin terminal koyu arka planı
-    page.padding = ft.padding.only(top=40, left=12, right=12, bottom=12)
+    page.bgcolor = "#0f111a"
+    # Sürüm çakışmasını önleyen güvenli padding
+    page.padding = ft.Padding(left=12, top=40, right=12, bottom=12)
 
     config = {"api_key": "", "secret_key": "", "min_price": 0.50, "max_price": 25.00, "min_volume": 100000.0, "is_running": False}
 
@@ -28,7 +29,7 @@ def main(page: ft.Page):
                 ], spacing=6),
                 ft.Container(
                     content=ft.Text("PRO v2.4", size=10, weight=ft.FontWeight.BOLD, color="#00ffcc"),
-                    bgcolor="#1a2634", padding=ft.padding.symmetric(horizontal=8, vertical=3), border_radius=4
+                    bgcolor="#1a2634", padding=ft.Padding(left=8, top=3, right=8, bottom=3), border_radius=4
                 )
             ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
             ft.Row([
@@ -36,14 +37,14 @@ def main(page: ft.Page):
                 ft.Text("Created by emge ✦", size=10, color="#00ffcc", italic=True),
             ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
         ], spacing=4),
-        padding=ft.padding.only(bottom=8)
+        padding=ft.Padding(left=0, top=0, right=0, bottom=8)
     )
 
     status_icon = ft.Icon(ft.Icons.RADIO_BUTTON_OFF, color="#ff4d4d", size=14)
     status_text = ft.Text("SİSTEM ÇEVRİMDIŞI", size=11, color="#ff4d4d", weight=ft.FontWeight.BOLD)
     signals_list = ft.ListView(expand=True, spacing=8)
 
-    # Piyasa Kapalı Uyarısı (Terminal Tasarımı)
+    # Piyasa Kapalı Uyarısı
     market_closed_banner = ft.Container(
         content=ft.Row([
             ft.Icon(ft.Icons.WARNING_ROUNDED, color="#ffaa00", size=18),
@@ -59,7 +60,6 @@ def main(page: ft.Page):
         visible=not is_market_open()
     )
 
-    # Terminal Stilinde Inputlar
     api_key_input = ft.TextField(
         label="Alpaca API Key", password=True, can_reveal_password=True,
         bgcolor="#161922", border_color="#2a3447", focused_border_color="#00ffcc",
@@ -103,7 +103,7 @@ def main(page: ft.Page):
                     ft.Text(f"${symbol}", size=15, weight=ft.FontWeight.BOLD, color="#ffffff"),
                     ft.Container(
                         content=ft.Text(sig_type, size=9, weight=ft.FontWeight.BOLD, color=tag_fg),
-                        bgcolor=tag_bg, padding=ft.padding.symmetric(horizontal=6, vertical=2), border_radius=3
+                        bgcolor=tag_bg, padding=ft.Padding(left=6, top=2, right=6, bottom=2), border_radius=3
                     ),
                     ft.Text(datetime.now().strftime("%H:%M:%S"), size=10, color="#8b9bb4")
                 ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
@@ -257,7 +257,6 @@ def main(page: ft.Page):
         btn_settings_nav.color = "#00ffcc"
         page.update()
 
-    # Terminal Tarzı Navigasyon Butonları
     btn_radar_nav = ft.ElevatedButton(
         "📡 RADAR", on_click=show_radar, 
         bgcolor="#1a2634", color="#00ffcc", expand=True,
