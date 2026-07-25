@@ -12,7 +12,7 @@ def is_market_open():
 def main(page: ft.Page):
     page.title = "EMGE TRADE Terminal PRO"
     page.theme_mode = ft.ThemeMode.DARK
-    page.bgcolor = "#0b0d14"  # Daha derin koyu borsa arka planı
+    page.bgcolor = "#0b0d14"
     page.padding = 10
 
     config = {"api_key": "", "secret_key": "", "min_price": 0.50, "max_price": 25.00, "min_volume": 100000.0, "is_running": False}
@@ -46,15 +46,14 @@ def main(page: ft.Page):
                 )
             ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
             ft.Divider(height=6, color="transparent"),
-            chart_decorations, # Mini Grafik Çizgisi Süsü
+            chart_decorations,
             ft.Row([
                 ft.Text("Created by emge ✦", size=9, color="#00ffcc", italic=True),
             ], alignment=ft.MainAxisAlignment.END)
         ], spacing=2),
         padding=10,
         bgcolor="#161922",
-        border_radius=8,
-        border=ft.border.all(1, "#1f293d")
+        border_radius=8
     )
 
     # --- RADAR CANLI DURUM & SAAT ---
@@ -87,7 +86,6 @@ def main(page: ft.Page):
         bgcolor="#1c1811",
         padding=10,
         border_radius=6,
-        border=ft.border.all(1, "#332611"),
         visible=not is_market_open()
     )
 
@@ -129,13 +127,11 @@ def main(page: ft.Page):
         card_bg = "#1f1810" if is_halt else "#10201a"
         tag_bg = "#332200" if is_halt else "#003322"
         tag_fg = "#ffaa00" if is_halt else "#00ffcc"
-        border_color = "#4d3300" if is_halt else "#004d33"
 
         card = ft.Container(
             padding=10,
             bgcolor=card_bg,
             border_radius=6,
-            border=ft.border.all(1, border_color),
             content=ft.Column([
                 ft.Row([
                     ft.Row([
@@ -268,7 +264,7 @@ def main(page: ft.Page):
                 ft.Row([status_icon, status_text], spacing=6),
                 clock_text
             ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
-            padding=8, bgcolor="#161922", border_radius=6, border=ft.border.all(1, "#1f293d")
+            padding=8, bgcolor="#161922", border_radius=6
         ),
         market_closed_banner,
         ft.Divider(color="#1f293d", height=2),
