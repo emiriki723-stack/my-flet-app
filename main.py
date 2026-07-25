@@ -26,7 +26,7 @@ def main(page: ft.Page):
                     ft.Text("TERMINAL", size=14, weight=ft.FontWeight.W_500, color="#00ffcc"),
                 ], spacing=6),
                 ft.Container(
-                    content=ft.Text("PRO v2.4", size=10, weight=ft.FontWeight.BOLD, color="#00ffcc"),
+                    content=ft.Text("PRO v2.5", size=10, weight=ft.FontWeight.BOLD, color="#00ffcc"),
                     bgcolor="#1a2634", padding=8, border_radius=4
                 )
             ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
@@ -52,7 +52,8 @@ def main(page: ft.Page):
         ], spacing=10),
         bgcolor="#1c1811",
         padding=10,
-        border_radius=6
+        border_radius=6,
+        visible=not is_market_open()
     )
 
     api_key_input = ft.TextField(
@@ -63,6 +64,11 @@ def main(page: ft.Page):
         label="Alpaca Secret Key", password=True, can_reveal_password=True,
         bgcolor="#161922", label_style=ft.TextStyle(color="#8b9bb4", size=12), text_style=ft.TextStyle(color="#ffffff", size=13)
     )
+
+    def show_toast(msg):
+        page.snack_bar = ft.SnackBar(ft.Text(msg))
+        page.snack_bar.open = True
+        page.update()
 
     def init_db_and_add(symbol, sig_type, price, stop, tp1, tp2, dollar_vol, is_halt=False):
         try:
@@ -139,6 +145,8 @@ def main(page: ft.Page):
                         status_text.color = "#00ffcc"
                         page.update()
                         ws.send(json.dumps({"action": "subscribe", "bars": ["*"]}))
+                    elif item.get("T") == "error":
+                        show_toast(f"API Hatası: {item.get('msg')}")
                     elif item.get("T") == "b":
                         symbol = item.get("S")
                         vol = int(item.get("v", 0))
@@ -165,36 +173,42 @@ def main(page: ft.Page):
                                     init_db_and_add(symbol, "🔥 SCALP SİNYAL", entry, round(entry*0.975,2), round(entry*1.035,2), round(entry*1.07,2), dollar_vol, is_halt=False)
 
                         history[symbol].append({"v": vol})
-            except:
+            except Exception as ex:
                 pass
 
         def on_open(ws):
             try:
                 ws.send(json.dumps({"action": "auth", "key": config["api_key"], "secret": config["secret_key"]}))
-            except:
+            except Exception as ex:
                 pass
 
         while config["is_running"]:
             try:
                 ws = websocket.WebSocketApp(ws_url, on_open=on_open, on_message=on_message)
                 ws.run_forever(sslopt={"cert_reqs": ssl.CERT_NONE})
-            except:
+            except Exception as e:
                 time.sleep(3)
 
     def toggle_scanner(e):
         if not api_key_input.value or not secret_key_input.value:
-            page.snack_bar = ft.SnackBar(ft.Text("API Key ve Secret Key zorunludur!"))
-            page.snack_bar.open = True
-            page.update()
+            show_toast("API Key ve Secret Key girmelisin!")
             return
 
-        config["api_key"] = api_key_input.value
-        config["secret_key"] = secret_key_input.value
+        config["api_key"] = api_key_input.value.strip()
+        config["secret_key"] = secret_key_input.value.strip()
 
         if not config["is_running"]:
             config["is_running"] = True
             btn_start.text = "Taramayı Durdur"
             btn_start.bgcolor = "#ff4d4d"
+            
+            # Anında durum güncellemesi ver
+            status_icon.name = ft.Icons.SYNC
+            status_icon.color = "#ffaa00"
+            status_text.value = "SUNUCUYA BAĞLANILIYOR..."
+            status_text.color = "#ffaa00"
+            page.update()
+
             threading.Thread(target=start_scanner, daemon=True).start()
         else:
             config["is_running"] = False
@@ -204,8 +218,7 @@ def main(page: ft.Page):
             status_icon.color = "#ff4d4d"
             status_text.value = "SİSTEM ÇEVRİMDIŞI"
             status_text.color = "#ff4d4d"
-
-        page.update()
+            page.update()
 
     btn_start = ft.ElevatedButton(
         "Taramayı Başlat", on_click=toggle_scanner, 
