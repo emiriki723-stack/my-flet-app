@@ -13,18 +13,19 @@ def main(page: ft.Page):
     page.title = "EMGE TRADE Terminal PRO"
     page.theme_mode = ft.ThemeMode.DARK
     page.bgcolor = "#0b0d14"
-    page.padding = 10
+    page.padding = 8
+    page.spacing = 0
 
     config = {"api_key": "", "secret_key": "", "min_price": 0.50, "max_price": 25.00, "min_volume": 100000.0, "is_running": False}
 
-    # --- GRAFİK SÜSLERİ ---
+    # --- GRAFİK SÜSLERİ (Görünürlüğü artırıldı) ---
     chart_decorations = ft.Row([
-        ft.Container(bgcolor="#00ffcc", width=12, height=3, border_radius=1),
-        ft.Container(bgcolor="#00ffcc", width=24, height=3, border_radius=1),
-        ft.Container(bgcolor="#ff4d4d", width=8, height=3, border_radius=1),
-        ft.Container(bgcolor="#00ffcc", width=36, height=3, border_radius=1),
-        ft.Container(bgcolor="#ff3399", width=16, height=3, border_radius=1),
-    ], spacing=4)
+        ft.Container(bgcolor="#00ffcc", width=16, height=6, border_radius=2),
+        ft.Container(bgcolor="#00ffcc", width=30, height=6, border_radius=2),
+        ft.Container(bgcolor="#ff4d4d", width=12, height=6, border_radius=2),
+        ft.Container(bgcolor="#00ffcc", width=42, height=6, border_radius=2),
+        ft.Container(bgcolor="#ff3399", width=20, height=6, border_radius=2),
+    ], spacing=6)
 
     # --- ÜST HEADER ---
     header = ft.Container(
@@ -45,12 +46,12 @@ def main(page: ft.Page):
                     bgcolor="#1a2634", padding=6, border_radius=4
                 )
             ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
-            ft.Divider(height=6, color="transparent"),
+            ft.Divider(height=4, color="transparent"),
             chart_decorations,
             ft.Row([
                 ft.Text("Created by emge ✦", size=9, color="#00ffcc", italic=True),
             ], alignment=ft.MainAxisAlignment.END)
-        ], spacing=2),
+        ], spacing=4),
         padding=10,
         bgcolor="#161922",
         border_radius=8
@@ -72,7 +73,8 @@ def main(page: ft.Page):
 
     threading.Thread(target=update_clock, daemon=True).start()
 
-    signals_list = ft.ListView(height=400, spacing=8)
+    # Ekran boyutuna göre kendini genişleten liste
+    signals_list = ft.ListView(expand=True, spacing=8)
 
     # HAFTA SONU UYARI BANTU
     market_closed_banner = ft.Container(
@@ -257,63 +259,60 @@ def main(page: ft.Page):
         bgcolor="#00ffcc", color="#0f111a", width=200
     )
 
-    # SECİM SEKMELERİ DÜZENİ
-    current_tab = "radar"
+    # İÇERİK ALANLARI
+    radar_view = ft.Column([
+        ft.Container(
+            content=ft.Row([
+                ft.Row([status_icon, status_text], spacing=6),
+                clock_text
+            ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
+            padding=8, bgcolor="#161922", border_radius=6
+        ),
+        market_closed_banner,
+        ft.Divider(color="#1f293d", height=2),
+        signals_list
+    ], expand=True, spacing=6)
 
-    def render_body():
-        if current_tab == "radar":
-            return ft.Column([
-                ft.Container(
-                    content=ft.Row([
-                        ft.Row([status_icon, status_text], spacing=6),
-                        clock_text
-                    ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
-                    padding=8, bgcolor="#161922", border_radius=6
-                ),
-                market_closed_banner,
-                ft.Divider(color="#1f293d", height=2),
-                signals_list
-            ], spacing=8)
-        else:
-            return ft.Column([
-                ft.Text("🔑 ALPACA API BAĞLANTI AYARLARI", size=12, weight=ft.FontWeight.BOLD, color="#00ffcc"),
-                api_key_input,
-                secret_key_input,
-                ft.Divider(color="#1f293d"),
-                ft.Row([btn_start], alignment=ft.MainAxisAlignment.CENTER)
-            ], spacing=12)
+    settings_view = ft.Column([
+        ft.Text("🔑 ALPACA API BAĞLANTI AYARLARI", size=12, weight=ft.FontWeight.BOLD, color="#00ffcc"),
+        api_key_input,
+        secret_key_input,
+        ft.Divider(color="#1f293d"),
+        ft.Row([btn_start], alignment=ft.MainAxisAlignment.CENTER)
+    ], expand=True, spacing=12)
 
-    body_container = ft.Container(content=render_body())
+    body_container = ft.Container(content=radar_view, expand=True)
 
     def switch_tab(tab_name):
-        nonlocal current_tab
-        current_tab = tab_name
-        body_container.content = render_body()
         if tab_name == "radar":
+            body_container.content = radar_view
             btn_radar_nav.bgcolor = "#1a2634"
             btn_radar_nav.color = "#00ffcc"
             btn_settings_nav.bgcolor = "#161922"
             btn_settings_nav.color = "#8b9bb4"
         else:
+            body_container.content = settings_view
             btn_radar_nav.bgcolor = "#161922"
             btn_radar_nav.color = "#8b9bb4"
             btn_settings_nav.bgcolor = "#1a2634"
             btn_settings_nav.color = "#00ffcc"
         page.update()
 
-    btn_radar_nav = ft.ElevatedButton("📡 RADAR", on_click=lambda e: switch_tab("radar"), bgcolor="#1a2634", color="#00ffcc", width=160)
-    btn_settings_nav = ft.ElevatedButton("⚙️ AYARLAR", on_click=lambda e: switch_tab("settings"), bgcolor="#161922", color="#8b9bb4", width=160)
+    btn_radar_nav = ft.ElevatedButton("📡 RADAR", on_click=lambda e: switch_tab("radar"), bgcolor="#1a2634", color="#00ffcc", expand=True)
+    btn_settings_nav = ft.ElevatedButton("⚙️ AYARLAR", on_click=lambda e: switch_tab("settings"), bgcolor="#161922", color="#8b9bb4", expand=True)
 
-    nav_row = ft.Row([btn_radar_nav, btn_settings_nav], alignment=ft.MainAxisAlignment.CENTER, spacing=8)
+    nav_row = ft.Container(
+        content=ft.Row([btn_radar_nav, btn_settings_nav], spacing=8),
+        padding=ft.padding.only(top=4, bottom=4)
+    )
 
-    # SAYFAYA EKLEME (Sabit yükseklikle çakışmayı %100 bitirdik)
+    # TAM EKRAN KAPLAYAN DÜZEN (Gri ekran ve altta boşluk yapmaz)
     page.add(
-        ft.Column([
-            header,
-            body_container,
-            ft.Divider(color="#1f293d", height=2),
-            nav_row
-        ], scroll=ft.ScrollMode.AUTO)
+        header,
+        ft.Container(height=6),
+        body_container,
+        ft.Divider(color="#1f293d", height=2),
+        nav_row
     )
 
 ft.app(target=main)
