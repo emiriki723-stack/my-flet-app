@@ -18,7 +18,7 @@ def main(page: ft.Page):
 
     config = {"api_key": "", "secret_key": "", "min_price": 0.50, "max_price": 25.00, "min_volume": 100000.0, "is_running": False}
 
-    # --- GRAFİK SÜSLERİ (Görünürlüğü artırıldı) ---
+    # --- GRAFİK SÜSLERİ (Görünür & Kalınlaştırılmış) ---
     chart_decorations = ft.Row([
         ft.Container(bgcolor="#00ffcc", width=16, height=6, border_radius=2),
         ft.Container(bgcolor="#00ffcc", width=30, height=6, border_radius=2),
@@ -73,7 +73,6 @@ def main(page: ft.Page):
 
     threading.Thread(target=update_clock, daemon=True).start()
 
-    # Ekran boyutuna göre kendini genişleten liste
     signals_list = ft.ListView(expand=True, spacing=8)
 
     # HAFTA SONU UYARI BANTU
@@ -303,16 +302,17 @@ def main(page: ft.Page):
 
     nav_row = ft.Container(
         content=ft.Row([btn_radar_nav, btn_settings_nav], spacing=8),
-        padding=ft.padding.only(top=4, bottom=4)
+        padding=ft.Padding(0, 4, 0, 4)
     )
 
-    # TAM EKRAN KAPLAYAN DÜZEN (Gri ekran ve altta boşluk yapmaz)
     page.add(
-        header,
-        ft.Container(height=6),
-        body_container,
-        ft.Divider(color="#1f293d", height=2),
-        nav_row
+        ft.Column([
+            header,
+            ft.Container(height=6),
+            body_container,
+            ft.Divider(color="#1f293d", height=2),
+            nav_row
+        ], expand=True, spacing=0)
     )
 
 ft.app(target=main)
