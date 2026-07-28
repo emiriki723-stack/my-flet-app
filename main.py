@@ -1,5 +1,6 @@
+# -*- coding: utf-8 -*-
 import flet as ft
-import requests, time, threading, sqlite3
+import requests, time, threading
 from datetime import datetime
 
 # --- PİYASA VE SEANS KONTROLÜ ---
@@ -47,10 +48,11 @@ def fetch_tradingview_ext_rockets():
         "range": [0, 20]
     }
 
-    headers = {"User-Agent": "Mozilla/5.0", "Content-Type": "application/json"}
+    headers = {"User-Agent": "Mozilla/5.0", "Content-Type": "application/json; charset=utf-8"}
 
     def parse_data(response):
         if response.status_code == 200:
+            response.encoding = 'utf-8'
             data = response.json()
             results = []
             for item in data.get("data", []):
@@ -60,7 +62,7 @@ def fetch_tradingview_ext_rockets():
                     ext_change = d[7] if len(d) > 7 and d[7] is not None else d[2]
                     if ext_price and ext_price > 0:
                         results.append({
-                            "symbol": d[0],
+                            "symbol": str(d[0]),
                             "price": round(float(ext_price), 2),
                             "change": round(float(ext_change), 2),
                             "volume": int(d[3]),
@@ -70,12 +72,12 @@ def fetch_tradingview_ext_rockets():
         return []
 
     try:
-        res = requests.post(url, json=payload_strict, headers=headers, timeout=5)
+        res = requests.post(url, json=payload_strict, headers=headers, timeout=8)
         parsed = parse_data(res)
         if parsed:
             return parsed
         
-        res_fb = requests.post(url, json=payload_fallback, headers=headers, timeout=5)
+        res_fb = requests.post(url, json=payload_fallback, headers=headers, timeout=8)
         return parse_data(res_fb)
     except Exception:
         pass
@@ -85,7 +87,7 @@ def fetch_tradingview_ext_rockets():
 def main(page: ft.Page):
     page.title = "EMGE TRADE - Cyberpunk Pro Tracker"
     page.theme_mode = ft.ThemeMode.DARK
-    page.bgcolor = "#030408" # Derin Uzay Siyahı
+    page.bgcolor = "#030408"
     page.padding = 12
     page.spacing = 0
 
@@ -93,7 +95,7 @@ def main(page: ft.Page):
     seen_signals = set()
     my_positions = {}
 
-    # --- SİBERPUNK HEADER (GRADYANTLI NEON ŞIKLIK) ---
+    # --- SİBERPUNK HEADER ---
     header = ft.Container(
         content=ft.Column([
             ft.Row([
@@ -166,7 +168,7 @@ def main(page: ft.Page):
         status_icon.color = color
         page.update()
 
-    # --- SİNYAL KARTLARI (GLASSMORPHISM & NEON GLOW KARTLAR) ---
+    # --- SİNYAL KARTLARI ---
     def add_signal_card(sig, current_session):
         entry = sig['price']
         stop = round(entry * 0.94, 2)
@@ -179,10 +181,10 @@ def main(page: ft.Page):
         def buy_clicked(e):
             if sym not in my_positions:
                 my_positions[sym] = {'entry': entry, 'stop': stop, 'tp1': tp1, 'tp2': tp2}
-                btn_buy.text = "📌 POZİSYONDA"
+                btn_buy.content.value = "📌 POZISYONDA"
                 btn_buy.gradient = ft.LinearGradient(colors=["#00ff88", "#00aa55"])
-                btn_buy.color = "#000000"
-                btn_buy.disabled = True
+                btn_buy.on_click = None  # Tekrar tıklanmayı önle
+                btn_buy.update()
                 page.update()
 
         btn_buy = ft.Container(
@@ -222,10 +224,9 @@ def main(page: ft.Page):
                 
                 ft.Divider(height=6, color="#162238"),
                 
-                # Hedef Seviyeleri Tasarımı
                 ft.Row([
                     ft.Column([
-                        ft.Text("Giriş", size=10, color="#88a0c0"),
+                        ft.Text("Giris", size=10, color="#88a0c0"),
                         ft.Text(f"${entry}", size=14, color="#00ff88", weight=ft.FontWeight.BOLD)
                     ], spacing=1),
                     ft.Column([
@@ -263,32 +264,35 @@ def main(page: ft.Page):
                     sell_alert_box.content = ft.Container(
                         content=ft.Row([
                             ft.Icon(ft.Icons.NOTIFICATIONS_ACTIVE, color="#ffffff", size=16),
-                            ft.Text(f"🚨 SAT VAKTİ! TP2 AŞILDI (${current_price}) - KÂRI AL!", size=11, weight=ft.FontWeight.BOLD, color="#ffffff"),
+                            ft.Text(f"🚨 SAT VAKTI! TP2 ASILDI (${current_price}) - KARI AL!", size=11, weight=ft.FontWeight.BOLD, color="#ffffff"),
                         ], spacing=6),
                         gradient=ft.LinearGradient(colors=["#ff00ff", "#7928ca"]),
                         padding=8, border_radius=6, shadow=ft.BoxShadow(spread_radius=1, blur_radius=10, color="#ff00ff")
                     )
                     sell_alert_box.visible = True
+                    sell_alert_box.update()
                 elif current_price >= pos['tp1']:
                     sell_alert_box.content = ft.Container(
                         content=ft.Row([
                             ft.Icon(ft.Icons.MONEY_ROUNDED, color="#000000", size=16),
-                            ft.Text(f"💰 KÂR AL SİNYALİ! TP1 ULAŞILDI (${current_price})", size=11, weight=ft.FontWeight.BOLD, color="#000000"),
+                            ft.Text(f"💰 KAR AL SINYALI! TP1 ULASILDI (${current_price})", size=11, weight=ft.FontWeight.BOLD, color="#000000"),
                         ], spacing=6),
                         gradient=ft.LinearGradient(colors=["#00ff88", "#00ffff"]),
                         padding=8, border_radius=6, shadow=ft.BoxShadow(spread_radius=1, blur_radius=10, color="#00ff88")
                     )
                     sell_alert_box.visible = True
+                    sell_alert_box.update()
                 elif current_price <= pos['stop']:
                     sell_alert_box.content = ft.Container(
                         content=ft.Row([
                             ft.Icon(ft.Icons.WARNING_ROUNDED, color="#ffffff", size=16),
-                            ft.Text(f"⚠️ STOP SİNYALİ! (${current_price}) - POZİSYONDAN ÇIK!", size=11, weight=ft.FontWeight.BOLD, color="#ffffff"),
+                            ft.Text(f"⚠️ STOP SINYALI! (${current_price}) - POZISYONDAN CIK!", size=11, weight=ft.FontWeight.BOLD, color="#ffffff"),
                         ], spacing=6),
                         gradient=ft.LinearGradient(colors=["#ff3366", "#990022"]),
                         padding=8, border_radius=6, shadow=ft.BoxShadow(spread_radius=1, blur_radius=10, color="#ff3366")
                     )
                     sell_alert_box.visible = True
+                    sell_alert_box.update()
 
         card.check_pos = check_position_status
         signals_list.controls.insert(0, card)
@@ -299,23 +303,26 @@ def main(page: ft.Page):
         while is_running:
             try:
                 curr_session = get_market_session()
-                update_status(f"TARANIYOR...", "#00ffff", ft.Icons.SYNC_ROUNDED)
+                update_status("TARANIYOR...", "#00ffff", ft.Icons.SYNC_ROUNDED)
                 rockets = fetch_tradingview_ext_rockets()
 
                 if rockets:
-                    update_status(f"CANLI TARAMA AKTİF ({len(rockets)} ROKET)", "#00ff88", ft.Icons.CHECK_CIRCLE_ROUNDED)
-                    for r in rockets:
-                        sig_key = f"{r['symbol']}_{r['price']}"
-                        
-                        for card in signals_list.controls:
-                            if hasattr(card, 'check_pos'):
+                    update_status(f"CANLI TARAMA AKTIF ({len(rockets)} ROKET)", "#00ff88", ft.Icons.CHECK_CIRCLE_ROUNDED)
+                    
+                    # Güvenli döngü: Listenin kopyası üzerinden kontrol yapıyoruz
+                    for card in list(signals_list.controls):
+                        if hasattr(card, 'check_pos'):
+                            # Elemanın sembolünü alıp roket fiyatıyla eşleştir
+                            for r in rockets:
                                 card.check_pos(r['price'])
 
+                    for r in rockets:
+                        sig_key = f"{r['symbol']}_{r['price']}"
                         if sig_key not in seen_signals:
                             seen_signals.add(sig_key)
                             add_signal_card(r, curr_session)
                 else:
-                    update_status("Kıvılcım Bekleniyor...", "#ffcc00", ft.Icons.SEARCH_ROUNDED)
+                    update_status("Kivilcim Bekleniyor...", "#ffcc00", ft.Icons.SEARCH_ROUNDED)
 
             except Exception:
                 pass
@@ -326,17 +333,19 @@ def main(page: ft.Page):
         nonlocal is_running
         if not is_running:
             is_running = True
-            btn_start.content.value = "Taramayı Durdur"
+            btn_start.content.value = "Taramayi Durdur"
             btn_start.gradient = ft.LinearGradient(colors=["#ff3366", "#990022"])
+            btn_start.update()
             threading.Thread(target=scanner_loop, daemon=True).start()
         else:
             is_running = False
-            btn_start.content.value = "Pre-Breakout Taramasını Başlat"
+            btn_start.content.value = "Pre-Breakout Taramasini Baslat"
             btn_start.gradient = ft.LinearGradient(colors=["#ff0055", "#7928ca"])
+            btn_start.update()
             update_status("RADAR KAPALI", "#ff3366", ft.Icons.RADIO_BUTTON_OFF_ROUNDED)
 
     btn_start = ft.Container(
-        content=ft.Text("Pre-Breakout Taramasını Başlat", size=14, weight=ft.FontWeight.BOLD, color="#ffffff"),
+        content=ft.Text("Pre-Breakout Taramasini Baslat", size=14, weight=ft.FontWeight.BOLD, color="#ffffff"),
         gradient=ft.LinearGradient(colors=["#ff0055", "#7928ca"]),
         alignment=ft.alignment.center,
         height=50,
@@ -367,4 +376,5 @@ def main(page: ft.Page):
         ], expand=True, spacing=0)
     )
 
-ft.app(target=main)
+if __name__ == "__main__":
+    ft.app(target=main)
