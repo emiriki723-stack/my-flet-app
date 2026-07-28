@@ -16,36 +16,44 @@ def get_market_session():
     else:
         return "AFTER-HOURS 🌙"
 
-# --- TRADINGVIEW PRE-BREAKOUT ENGINE ---
+# --- TRADINGVIEW PRE-BREAKOUT ENGINE (Yüksek Oynaklık + Direnç Kırılımı) ---
 def fetch_tradingview_ext_rockets():
     url = "https://scanner.tradingview.com/america/scan"
     
+    # 50M$ MAKSİMUM MARKET CAP & GÜNÜN EN YÜKSEĞİNİ KIRANLAR (DİRENÇ KIRILIMI)
     payload_strict = {
         "filter": [
-            {"left": "close", "operation": "in_range", "right": [0.30, 15.00]},
-            {"left": "market_cap_basic", "operation": "less", "right": 50000000},
-            {"left": "change", "operation": "in_range", "right": [3.0, 15.00]},
-            {"left": "relative_volume_10d_calc", "operation": "greater", "right": 2.0}
+            {"left": "close", "operation": "in_range", "right": [0.50, 10.00]},          # Fiyat aralığı
+            {"left": "market_cap_basic", "operation": "less", "right": 50000000},        # KESİN: Max 50 Milyon $ P.Değeri
+            {"left": "volume", "operation": "greater", "right": 1000000},                # KESİN: En az 1 Milyon lot hacim
+            {"left": "relative_volume_10d_calc", "operation": "greater", "right": 5.0},  # KESİN: Normalin EN AZ 5 KATI hacim patlaması
+            {"left": "change", "operation": "in_range", "right": [4.0, 15.00]},          # Prim aralığı
+            {"left": "close", "operation": "greater_or_equal", "right": "high"}          # Direnç Kırılımı: Fiyat günün zirvesinde veya üstünde!
         ],
         "options": {"lang": "en", "active_symbol_country": "US"},
         "symbols": {"query": {"types": []}, "tickers": []},
-        "columns": ["name", "close", "change", "volume", "relative_volume_10d_calc", "description", "extended_hours_price", "extended_hours_change"],
-        "sort_by": "relative_volume_10d_calc",
+        # 'high' sütunu eklendi (indis 8)
+        "columns": ["name", "close", "change", "volume", "relative_volume_10d_calc", "description", "extended_hours_price", "extended_hours_change", "high"],
+        "sort_by": "relative_volume_10d_calc", 
         "sort_order": "desc",
-        "range": [0, 30]
+        "range": [0, 10]
     }
 
+    # B-PLAN FİLTRESİ (Piyasa sakinken esnetilmiş versiyon)
     payload_fallback = {
         "filter": [
-            {"left": "close", "operation": "in_range", "right": [0.30, 15.00]},
-            {"left": "change", "operation": "in_range", "right": [2.0, 20.00]}
+            {"left": "close", "operation": "in_range", "right": [0.50, 8.00]},
+            {"left": "market_cap_basic", "operation": "less", "right": 50000000},
+            {"left": "volume", "operation": "greater", "right": 750000},
+            {"left": "relative_volume_10d_calc", "operation": "greater", "right": 3.5},
+            {"left": "change", "operation": "in_range", "right": [3.0, 12.00]}
         ],
         "options": {"lang": "en", "active_symbol_country": "US"},
         "symbols": {"query": {"types": []}, "tickers": []},
-        "columns": ["name", "close", "change", "volume", "relative_volume_10d_calc", "description", "extended_hours_price", "extended_hours_change"],
+        "columns": ["name", "close", "change", "volume", "relative_volume_10d_calc", "description", "extended_hours_price", "extended_hours_change", "high"],
         "sort_by": "change",
         "sort_order": "desc",
-        "range": [0, 20]
+        "range": [0, 8]
     }
 
     headers = {"User-Agent": "Mozilla/5.0", "Content-Type": "application/json; charset=utf-8"}
@@ -95,7 +103,7 @@ def main(page: ft.Page):
     seen_signals = set()
     my_positions = {}
 
-    # --- SİBERPUNK HEADER (HİZALAMA HATASI DÜZELTİLDİ) ---
+    # --- SİBERPUNK HEADER ---
     header = ft.Container(
         content=ft.Column([
             ft.Row([
@@ -103,8 +111,8 @@ def main(page: ft.Page):
                     ft.Container(
                         content=ft.Icon(ft.Icons.ROCKET_LAUNCH_ROUNDED, color="#00ffff", size=28),
                         gradient=ft.LinearGradient(
-                            begin=ft.Alignment(-1, -1), # Sol üst koordinatı
-                            end=ft.Alignment(1, 1),     # Sağ alt koordinatı
+                            begin=ft.Alignment(-1, -1),
+                            end=ft.Alignment(1, 1),
                             colors=["#ff0055", "#7928ca"]
                         ),
                         padding=10, border_radius=12,
@@ -345,7 +353,7 @@ def main(page: ft.Page):
     btn_start = ft.Container(
         content=ft.Text("Pre-Breakout Taramasini Baslat", size=14, weight=ft.FontWeight.BOLD, color="#ffffff"),
         gradient=ft.LinearGradient(colors=["#ff0055", "#7928ca"]),
-        alignment=ft.Alignment(0, 0), # Merkeze hizalama
+        alignment=ft.Alignment(0, 0),
         height=50,
         border_radius=12,
         on_click=toggle_scanner,
