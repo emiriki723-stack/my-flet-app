@@ -95,7 +95,7 @@ def main(page: ft.Page):
     seen_signals = set()
     my_positions = {}
 
-    # --- SİBERPUNK HEADER ---
+    # --- SİBERPUNK HEADER (HİZALAMA HATASI DÜZELTİLDİ) ---
     header = ft.Container(
         content=ft.Column([
             ft.Row([
@@ -103,8 +103,8 @@ def main(page: ft.Page):
                     ft.Container(
                         content=ft.Icon(ft.Icons.ROCKET_LAUNCH_ROUNDED, color="#00ffff", size=28),
                         gradient=ft.LinearGradient(
-                            begin=ft.alignment.top_left,
-                            end=ft.alignment.bottom_right,
+                            begin=ft.Alignment(-1, -1), # Sol üst koordinatı
+                            end=ft.Alignment(1, 1),     # Sağ alt koordinatı
                             colors=["#ff0055", "#7928ca"]
                         ),
                         padding=10, border_radius=12,
@@ -183,7 +183,7 @@ def main(page: ft.Page):
                 my_positions[sym] = {'entry': entry, 'stop': stop, 'tp1': tp1, 'tp2': tp2}
                 btn_buy.content.value = "📌 POZISYONDA"
                 btn_buy.gradient = ft.LinearGradient(colors=["#00ff88", "#00aa55"])
-                btn_buy.on_click = None  # Tekrar tıklanmayı önle
+                btn_buy.on_click = None
                 btn_buy.update()
                 page.update()
 
@@ -309,10 +309,8 @@ def main(page: ft.Page):
                 if rockets:
                     update_status(f"CANLI TARAMA AKTIF ({len(rockets)} ROKET)", "#00ff88", ft.Icons.CHECK_CIRCLE_ROUNDED)
                     
-                    # Güvenli döngü: Listenin kopyası üzerinden kontrol yapıyoruz
                     for card in list(signals_list.controls):
                         if hasattr(card, 'check_pos'):
-                            # Elemanın sembolünü alıp roket fiyatıyla eşleştir
                             for r in rockets:
                                 card.check_pos(r['price'])
 
@@ -347,7 +345,7 @@ def main(page: ft.Page):
     btn_start = ft.Container(
         content=ft.Text("Pre-Breakout Taramasini Baslat", size=14, weight=ft.FontWeight.BOLD, color="#ffffff"),
         gradient=ft.LinearGradient(colors=["#ff0055", "#7928ca"]),
-        alignment=ft.alignment.center,
+        alignment=ft.Alignment(0, 0), # Merkeze hizalama
         height=50,
         border_radius=12,
         on_click=toggle_scanner,
